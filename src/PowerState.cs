@@ -1,21 +1,27 @@
 
+using System.Runtime.InteropServices;
+using System.Diagnostics;
+
 namespace PcMQTT
 {
     
     class PowerManager
     {
+
+        [DllImport("PowrProf.dll", CharSet = CharSet.Auto, ExactSpelling = true)]
+        private static extern bool SetSuspendState(bool hibernate, bool forceCritical, bool disableWakeEvent);
         
-        void hibernate()
+        static public void hibernate()
         {
-            // Code to put the computer into hibernate mode
+            SetSuspendState(true, true, true);
         }
-        void sleep()
+        static public void sleep()
         {
-            // Code to put the computer into sleep mode
+            SetSuspendState(false, true, true);
         }
-        void shutdown()
+        static public void shutdown()
         {
-            // Code to shut down the computer
+            Process.Start("shutdown", "/s /t 0");
         }
 
     }
