@@ -34,8 +34,8 @@ namespace PcMQTT
             mqttClient = mqttClientFactory.CreateMqttClient();
         }
 
-        event Func<Task> onConnected;
-        event Func<Task> onDisconnecting;
+        event Func<Task>? onConnected;
+        event Func<Task>? onDisconnecting;
 
         public async Task connect()
         {
@@ -55,7 +55,8 @@ namespace PcMQTT
                     retain:  true
                 );
 
-                await onConnected();
+                if(onConnected is Func<Task> OnConnected)
+                    await OnConnected();
             };
             
             var result = await mqttClient.ConnectAsync(options);
@@ -63,7 +64,8 @@ namespace PcMQTT
 
         public async Task disconnect()
         {
-            await onDisconnecting();
+            if(onDisconnecting is Func<Task> OnDisconnecting)
+                await OnDisconnecting();
             await publish(
                 topic:   Topics.avaliabilityTopic,
                 payload: "offline",
@@ -83,8 +85,12 @@ namespace PcMQTT
                 .WithTopic(topic)
                 .WithPayload(payload);
 
-            if(retain is not null) messageBuilder.WithRetainFlag(retain!);
-            if(qos is not null) messageBuilder.WithQualityOfServiceLevel(qos!);
+            if(retain is bool Retain) messageBuilder.WithRetainFlag(Retain);
+            if(qos is int Qos) messageBuilder.WithQualityOfServiceLevel(
+                Qos == 0 ? MQTTnet.Protocol.MqttQualityOfServiceLevel.AtMostOnce :
+                Qos == 1 ? MQTTnet.Protocol.MqttQualityOfServiceLevel.AtLeastOnce :
+                           MQTTnet.Protocol.MqttQualityOfServiceLevel.ExactlyOnce
+            );
 
             await mqttClient.PublishAsync(messageBuilder.Build());
         }
