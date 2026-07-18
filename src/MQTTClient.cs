@@ -52,7 +52,7 @@ namespace PcMQTT
                 await publish(
                     topic:   Topics.avaliabilityTopic,
                     payload: "online",
-                    retain:   true
+                    retain:  true
                 );
 
                 await onConnected();
@@ -61,7 +61,17 @@ namespace PcMQTT
             var result = await mqttClient.ConnectAsync(options);
         }
 
-        
+        public async Task disconnect()
+        {
+            await onDisconnecting();
+            await publish(
+                topic:   Topics.avaliabilityTopic,
+                payload: "offline",
+                retain:  true
+            );
+            await mqttClient.DisconnectAsync();
+        }
+
         public async Task publish(
             string topic,
             string payload,
