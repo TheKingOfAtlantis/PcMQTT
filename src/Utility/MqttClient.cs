@@ -94,5 +94,16 @@ namespace PcMQTT
 
             await mqttClient.PublishAsync(messageBuilder.Build());
         }
+
+        public async Task subscribe(
+            string topic
+        )
+        {
+            var topicFilter = new MqttTopicFilterBuilder()
+                .WithTopic(topic)
+                .Build();
+            
+            await mqttClient.SubscribeAsync(topicFilter);
+        }
     }
 }
