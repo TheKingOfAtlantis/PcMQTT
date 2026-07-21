@@ -106,4 +106,11 @@ namespace PcMQTT
             await mqttClient.SubscribeAsync(topicFilter);
         }
     }
+
+    static class MqttClientExtensions {
+        public static async Task awaitConnected(this MqttClient client)
+        {
+            SpinWait.SpinUntil(() => client.mqttClient.IsConnected);
+        }
+    }
 }
