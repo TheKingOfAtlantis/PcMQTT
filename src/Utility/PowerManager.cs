@@ -37,8 +37,8 @@ namespace PcMQTT
 
         void OnPowerChange(object sender, PowerModeChangedEventArgs e)
         {
-            if (e.Mode == PowerModes.Suspend) OnSuspend();
-            else if (e.Mode == PowerModes.Resume) OnResume();
+            if(e.Mode == PowerModes.Suspend) OnSuspend();
+            else if(e.Mode == PowerModes.Resume) OnResume();
         }
 
         public PowerManager(
@@ -47,9 +47,9 @@ namespace PcMQTT
             OnShutdownEventHandler onShutdown
         )
         {
-            OnResume   += onResume;
-            OnSuspend  += onSuspend;
-            OnShutdown += onShutdown;
+            this.OnResume   += onResume;
+            this.OnSuspend  += onSuspend;
+            this.OnShutdown += onShutdown;
 
             SystemEvents.PowerModeChanged += new PowerModeChangedEventHandler(OnPowerChange);
             SystemEvents.SessionEnding    += new SessionEndingEventHandler((sender, e) => OnShutdown());
