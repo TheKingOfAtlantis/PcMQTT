@@ -37,6 +37,20 @@ namespace PcMQTT
         event Func<Task>? onConnected;
         event Func<Task>? onDisconnecting;
 
+        async Task disconnectedHandler(MqttClientDisconnectedEventArgs args){
+            Console.WriteLine("Reconnecting to broker");
+
+            while(true)
+            {
+                await mqttClient.ReconnectAsync();
+                if(mqttClient.IsConnected)
+                    break;
+                await Task.Delay(TimeSpan.FromSeconds(5));
+            }
+
+            Console.WriteLine("Reconnected");
+        }
+
         public async Task connect()
         {
             var options = new MqttClientOptionsBuilder()
@@ -59,18 +73,25 @@ namespace PcMQTT
                     await OnConnected();
             };
             
+            Console.WriteLine($"Connecting to broker: {hostname}:{port}");
             var result = await mqttClient.ConnectAsync(options);
+
+            mqttClient.DisconnectedAsync += disconnectedHandler;
         }
 
         public async Task disconnect()
         {
             if(onDisconnecting is Func<Task> OnDisconnecting)
                 await OnDisconnecting();
+
+            mqttClient.DisconnectedAsync -= disconnectedHandler;
+
             await publish(
                 topic:   Topics.avaliabilityTopic,
                 payload: "offline",
                 retain:  true
             );
+            Console.WriteLine("Disconnecting from broker");
             await mqttClient.DisconnectAsync();
         }
 
