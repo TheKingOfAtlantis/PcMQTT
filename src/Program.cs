@@ -59,6 +59,28 @@ var mqttClient = new PcMQTT.MqttClient(
 
 await mqttClient.connect();
 
+var commands = new IButton[]
+{
+    new HibernateCommand(mqttClient),
+    new ShutdownCommand(mqttClient),
+    new SleepCommand(mqttClient)
+};
+
+foreach(var discoverable in commands)
+    await discoverable.discover();
+
+mqttClient.mqttClient.ApplicationMessageReceivedAsync += async args => {
+    var topic   = args.ApplicationMessage.Topic;
+    var payload = args.ApplicationMessage.ConvertPayloadToString();
+
+    foreach(var command in commands)
+        if(topic == command.topic)
+            await command.handleSubscription(payload);
+};
+
+foreach(var command in commands)
+    await command.subscribe();
+
 // Now we sleep the main thread and handle mqtt in the background
 var cts = new CancellationTokenSource();
 Console.CancelKeyPress += (_, e) =>
