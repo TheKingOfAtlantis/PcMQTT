@@ -6,17 +6,21 @@ namespace PcMQTT
     class HibernateCommand : IButton
     {
         MqttClient client;
+        ISensor sensor;
 
         public HibernateCommand(
-            MqttClient client
+            MqttClient client,
+            ISensor sensor
         )
         {
             this.client = client;
+            this.sensor = sensor;
         }
 
         public string topic => $"{Topics.commandTopic}/sleep";
         public async Task handleSubscription(string payload)
         {
+            await sensor.publish(PowerState.Hibernating);
             PowerManager.hibernate();
         }
         public async Task subscribe()

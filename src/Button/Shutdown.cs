@@ -6,17 +6,21 @@ namespace PcMQTT
     class ShutdownCommand : IButton
     {
         MqttClient client;
+        ISensor sensor;
 
         public ShutdownCommand(
-            MqttClient client
+            MqttClient client,
+            ISensor sensor
         )
         {
             this.client = client;
+            this.sensor = sensor;
         }
 
         public string topic => $"{Topics.commandTopic}/sleep";
         public async Task handleSubscription(string payload)
         {
+            await sensor.publish(PowerState.Shutdown);
             PowerManager.sleep();
         }
         public async Task subscribe()

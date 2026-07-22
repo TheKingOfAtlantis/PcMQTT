@@ -83,9 +83,9 @@ var sensors = new ISensor[]
 
 var commands = new IButton[]
 {
-    new HibernateCommand(mqttClient),
-    new ShutdownCommand(mqttClient),
-    new SleepCommand(mqttClient)
+    new HibernateCommand(mqttClient, powerStateSensor),
+    new ShutdownCommand(mqttClient, powerStateSensor),
+    new SleepCommand(mqttClient, powerStateSensor)
 };
 
 foreach(var discoverable in (sensors as IDiscoverable[]).Union(commands))
