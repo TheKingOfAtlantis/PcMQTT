@@ -1,1 +1,79 @@
-﻿Console.WriteLine("Hello, World!");
+﻿
+using MQTTnet;
+using PcMQTT;
+
+string  hostname = "";
+Int16?  port;
+string? username;
+string? password = null;
+
+string ReadPassword()
+{
+    var password = new System.Text.StringBuilder();
+
+    while (true)
+    {
+        var key = Console.ReadKey(true);
+
+        if (key.Key == ConsoleKey.Enter)
+            break;
+
+        if (key.Key == ConsoleKey.Backspace)
+        {
+            if (password.Length > 0)
+            {
+                password.Length--;
+                Console.Write("\b \b");
+            }
+        }
+        else if (!char.IsControl(key.KeyChar))
+        {
+            password.Append(key.KeyChar);
+            Console.Write("*");
+        }
+    }
+
+    Console.WriteLine();
+    return password.ToString();
+}
+
+Console.Write("IP/Hostname: ");
+hostname = Console.ReadLine() ?? "";
+Console.Write($"port (Default: {PcMQTT.MqttClient.defaultPort}): ");
+port = short.TryParse(Console.ReadLine(), out var parsedPort) ? parsedPort : null;
+Console.Write("Username: ");
+username = Console.ReadLine();
+if(!string.IsNullOrEmpty(username))
+{
+    Console.Write("Password: ");
+    password = ReadPassword();
+}
+
+var mqttClient = new PcMQTT.MqttClient(
+    hostname: hostname,
+    port: port ?? PcMQTT.MqttClient.defaultPort,
+    clientID: "PcMQTTClient",
+    username: username,
+    password: password
+);
+
+await mqttClient.connect();
+
+// Now we sleep the main thread and handle mqtt in the background
+var cts = new CancellationTokenSource();
+Console.CancelKeyPress += (_, e) =>
+{
+    e.Cancel = true;
+    cts.Cancel();
+};
+
+try
+{
+    await Task.Delay(Timeout.Infinite, cts.Token);
+} 
+catch(TaskCanceledException)
+{
+    
+}
+
+await mqttClient.disconnect();
