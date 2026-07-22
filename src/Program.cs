@@ -59,6 +59,12 @@ var mqttClient = new PcMQTT.MqttClient(
 
 await mqttClient.connect();
 
+var powerStateSensor = new PowerStateSensor(mqttClient);
+var sensors = new ISensor[]
+{
+    powerStateSensor
+};
+
 var commands = new IButton[]
 {
     new HibernateCommand(mqttClient),
@@ -66,7 +72,7 @@ var commands = new IButton[]
     new SleepCommand(mqttClient)
 };
 
-foreach(var discoverable in commands)
+foreach(var discoverable in (sensors as IDiscoverable[]).Union(commands))
     await discoverable.discover();
 
 mqttClient.mqttClient.ApplicationMessageReceivedAsync += async args => {
@@ -80,6 +86,8 @@ mqttClient.mqttClient.ApplicationMessageReceivedAsync += async args => {
 
 foreach(var command in commands)
     await command.subscribe();
+
+await powerStateSensor.publish(PcMQTT.PowerState.Running);
 
 // Now we sleep the main thread and handle mqtt in the background
 var cts = new CancellationTokenSource();
