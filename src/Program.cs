@@ -62,18 +62,18 @@ await mqttClient.connect();
 var powerStateSensor = new PowerStateSensor(mqttClient);
 
 var powerManager = new PowerManager(
-    onResume: () => Task.Run(async () => {
+    onResume: async () => {
         await mqttClient.awaitConnected();
         await powerStateSensor.publish(PcMQTT.PowerState.Running);
-    }).Wait(),
-    onSuspend: () => Task.Run(async () => {
+    },
+    onSuspend: async () => {
         await mqttClient.publish(Topics.avaliabilityTopic, "offline");
         if(powerStateSensor.lastState == PcMQTT.PowerState.Running)
             await powerStateSensor.publish(PcMQTT.PowerState.Hibernating);    
-    }).Wait(),
-    onShutdown: () => Task.Run(async () =>
-        await powerStateSensor.publish(PcMQTT.PowerState.Shutdown)
-    ).Wait()
+    },
+    onShutdown: async () => {
+        await powerStateSensor.publish(PcMQTT.PowerState.Shutdown);
+    }
 );
 
 var sensors = new ISensor[]

@@ -6,7 +6,6 @@ using Microsoft.Win32;
 
 namespace PcMQTT
 {
-    
     class PowerManager
     {
 
@@ -26,9 +25,9 @@ namespace PcMQTT
             Process.Start("shutdown", "/s /t 0");
         }
 
-        public delegate void OnResumeEventHandler();
-        public delegate void OnSuspendEventHandler();
-        public delegate void OnShutdownEventHandler();
+        public delegate Task OnResumeEventHandler();
+        public delegate Task OnSuspendEventHandler();
+        public delegate Task OnShutdownEventHandler();
         
         public event OnSuspendEventHandler OnSuspend;
         public event OnResumeEventHandler OnResume;
@@ -37,8 +36,8 @@ namespace PcMQTT
 
         void OnPowerChange(object sender, PowerModeChangedEventArgs e)
         {
-            if(e.Mode == PowerModes.Suspend) OnSuspend();
-            else if(e.Mode == PowerModes.Resume) OnResume();
+            if(e.Mode == PowerModes.Suspend) OnSuspend().Wait();
+            else if(e.Mode == PowerModes.Resume) OnResume().Wait();
         }
 
         public PowerManager(
@@ -52,9 +51,7 @@ namespace PcMQTT
             this.OnShutdown += onShutdown;
 
             SystemEvents.PowerModeChanged += new PowerModeChangedEventHandler(OnPowerChange);
-            SystemEvents.SessionEnding    += new SessionEndingEventHandler((sender, e) => OnShutdown());
+            SystemEvents.SessionEnding    += new SessionEndingEventHandler((sender, e) => OnShutdown().Wait());
         }
-
     }
-
 }
