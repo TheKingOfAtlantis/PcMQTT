@@ -37,6 +37,9 @@ namespace PcMQTT
         event Func<Task>? onConnected;
         event Func<Task>? onDisconnecting;
 
+
+        List<string> subscriptions = [];
+        
         async Task reconnectHandler(MqttClientDisconnectedEventArgs args){
             Console.WriteLine("Reconnecting to broker");
 
@@ -55,6 +58,10 @@ namespace PcMQTT
             }
 
             Console.WriteLine("Reconnected");
+
+            Console.WriteLine("Resubscribing");
+            foreach(var sub in subscriptions)
+                await subscribe(sub);
         }
 
         public async Task connect()
@@ -131,6 +138,9 @@ namespace PcMQTT
                 .Build();
             
             await mqttClient.SubscribeAsync(topicFilter);
+
+            if(!subscriptions.Contains(topic))
+                subscriptions.Append(topic);
         }
     }
 
