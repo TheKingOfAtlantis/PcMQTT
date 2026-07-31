@@ -40,12 +40,18 @@ namespace PcMQTT
         async Task disconnectedHandler(MqttClientDisconnectedEventArgs args){
             Console.WriteLine("Reconnecting to broker");
 
+            var delay = TimeSpan.FromSeconds(5);
+            var maxBackoff = TimeSpan.FromMinutes(5);
             while(true)
             {
                 await mqttClient.ReconnectAsync();
                 if(mqttClient.IsConnected)
                     break;
-                await Task.Delay(TimeSpan.FromSeconds(5));
+
+                // Exponential backoff with maximum
+                await Task.Delay(delay);
+                if(delay < maxBackoff)
+                    delay += delay;
             }
 
             Console.WriteLine("Reconnected");
